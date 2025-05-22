@@ -1,0 +1,27 @@
+vich_uploader:
+    db_driver: orm
+
+    mappings:
+        property_main:
+            uri_prefix: /uploads/properties/main
+            upload_destination: '%kernel.project_dir%/public/uploads/properties/main'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+            inject_on_load: false
+            delete_on_update: true
+            delete_on_remove: true
+
+        property_gallery:
+            uri_prefix: /uploads/properties/gallery
+            upload_destination: '%kernel.project_dir%/public/uploads/properties/gallery'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+            inject_on_load: false
+            delete_on_update: true
+            delete_on_remove: true
+
+        property_plan:
+            uri_prefix: /uploads/properties/plans
+            upload_destination: '%kernel.project_dir%/public/uploads/properties/plans'
+            namer: Vich\UploaderBundle\Naming\OrignameNamer
+            inject_on_load: false
+            delete_on_update: true
+            delete_on_remove: true

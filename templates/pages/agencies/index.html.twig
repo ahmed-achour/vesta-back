@@ -1,0 +1,201 @@
+{% extends "#{theme.getParameter('KT_THEME_LAYOUT_DIR')}/_default.html.twig" %}
+
+{% block page_title %}Agencies Management{% endblock %}
+
+{% block content %}
+<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+    <div class="post d-flex flex-column-fluid" id="kt_post">
+        <div id="kt_content_container" class="container-xxl">
+            <div class="card">
+                <div class="card-header border-0 pt-6">
+                    <div class="card-title">
+                        <div class="d-flex align-items-center position-relative my-1">
+                            <span class="svg-icon svg-icon-1 position-absolute ms-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                                    <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>
+                                    <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black"/>
+                                </svg>
+                            </span>
+                            <input type="text" data-kt-agency-table-filter="search" class="form-control form-control-solid w-250px ps-14" placeholder="Search agencies"/>
+                        </div>
+                    </div>
+                    <div class="card-toolbar">
+                        <div class="d-flex justify-content-end" data-kt-agency-table-toolbar="base">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_agency">
+                                <span class="svg-icon svg-icon-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                                        <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="black"/>
+                                        <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="black"/>
+                                    </svg>
+                                </span>
+                                Add Agency
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_agencies">
+                        <thead>
+                            <tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+                                <th class="min-w-125px">Agency Name</th>
+                                <th class="min-w-100px">Member Count</th>
+                                <th class="min-w-100px">Total Sales</th>
+                                <th class="min-w-100px">12 Month Sales</th>
+                                <th class="min-w-125px">Average Price</th>
+                                <th class="min-w-125px">Website</th>
+                                <th class="min-w-125px">Created At</th>
+                                <th class="text-end min-w-100px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-600 fw-bold">
+                            {% for agency in agencies %}
+                                <tr>
+                                    <td>{{ agency.name }}</td>
+                                    <td>{{ agency.memberCount }}</td>
+                                    <td>{{ agency.totalSales }}</td>
+                                    <td>{{ agency.twelveMonthSales }}</td>
+                                    <td>{{ agency.averagePrice ? agency.averagePrice|number_format(2, '.', ',') : '' }}</td>
+                                    <td>
+                                        {% if agency.websiteUrl %}
+                                            <a href="{{ agency.websiteUrl }}" target="_blank" rel="noopener noreferrer">{{ agency.websiteUrl }}</a>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ agency.createdAt ? agency.createdAt|date('Y-m-d H:i') : '' }}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_agency_{{ agency.agencyId }}">Edit</button>
+                                        <form method="post" action="{{ path('admin_agencies_delete', {'agencyId': agency.agencyId}) }}" style="display: inline-block;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ agency.agencyId) }}">
+                                            <button class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Agency Modal -->
+<div class="modal fade" id="kt_modal_add_agency" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered mw-650px">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="fw-bolder">Add Agency</h2>
+                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                    <span class="svg-icon svg-icon-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                {{ form_start(form, {
+                    'attr': {
+                        'id': 'kt_modal_add_agency_form', 
+                        'class': 'form',
+                        'action': path('admin_agencies_new')
+                    }
+                }) }}
+                <div class="d-flex flex-column scroll-y me-n7 pe-7">
+                    {{ form_widget(form) }}
+                </div>
+                <div class="text-center pt-15">
+                    <button type="reset" class="btn btn-light me-3" data-kt-agency-modal-action="cancel">Discard</button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="indicator-label">Submit</span>
+                        <span class="indicator-progress">Please wait...
+                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                        </span>
+                    </button>
+                </div>
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modals for each agency -->
+{% for agency in agencies %}
+    <div class="modal fade" id="kt_modal_edit_agency_{{ agency.agencyId }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered mw-650px">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="fw-bolder">Edit Agency</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                        <span class="svg-icon svg-icon-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                                <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+                                <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+                            </svg>
+                        </span>
+                    </div>
+                </div>
+                <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                    {{ form_start(edit_forms[agency.agencyId], {
+                        'attr': {
+                            'id': 'kt_modal_edit_agency_form_' ~ agency.agencyId, 
+                            'class': 'form',
+                            'action': path('admin_agencies_edit', {'agencyId': agency.agencyId})
+                        }
+                    }) }}
+                    <div class="d-flex flex-column scroll-y me-n7 pe-7">
+                        {{ form_widget(edit_forms[agency.agencyId]) }}
+                    </div>
+                    <div class="text-center pt-15">
+                        <button type="reset" class="btn btn-light me-3" data-kt-agency-modal-action="cancel">Discard</button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="indicator-label">Update</span>
+                            <span class="indicator-progress">Please wait...
+                                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                            </span>
+                        </button>
+                    </div>
+                    {{ form_end(edit_forms[agency.agencyId]) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+<!-- Snackbar Notifications -->
+<div id="kt_snackbar" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle flash messages as snackbar notifications
+        {% for message in app.flashes('success') %}
+            showSnackbar('{{ message }}', 'success');
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            showSnackbar('{{ message }}', 'danger');
+        {% endfor %}
+    });
+
+    function showSnackbar(message, type = 'success') {
+        const snackbar = document.getElementById('kt_snackbar');
+        const toast = snackbar.querySelector('.toast');
+
+        // Set type (success, error, etc.)
+        toast.className = `toast align-items-center text-white bg-${type}`;
+
+        // Set message
+        toast.querySelector('.toast-body').textContent = message;
+
+        // Show the toast
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+</script>
+{% endblock %}

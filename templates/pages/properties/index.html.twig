@@ -1,0 +1,500 @@
+{% extends "#{theme.getParameter('KT_THEME_LAYOUT_DIR')}/_default.html.twig" %}
+
+{% block page_title %}Properties
+{% endblock %}
+
+{% block content %}
+<div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+	<div class="post d-flex flex-column-fluid" id="kt_post">
+		<div id="kt_content_container" class="container-xxl">
+			<div class="card">
+				<div class="card-header border-0 pt-6">
+					<div class="card-title">
+						<div class="d-flex align-items-center position-relative my-1">
+							<span class="svg-icon svg-icon-1 position-absolute ms-6">
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+									<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>
+									<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black"/>
+								</svg>
+							</span>
+							<input type="text" data-kt-property-table-filter="search" class="form-control form-control-solid w-250px ps-14" placeholder="Search properties"/>
+						</div>
+					</div>
+					<div class="card-toolbar">
+						<div class="d-flex justify-content-end" data-kt-property-table-toolbar="base">
+							<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_property">
+								<span class="svg-icon svg-icon-2">
+									<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+										<rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="black"/>
+										<rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="black"/>
+									</svg>
+								</span>
+								Add Property
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="card-body pt-0">
+					<table class="table align-middle table-row-dashed fs-6 gy-5" id="kt_table_properties">
+						<thead>
+							<tr class="text-start text-muted fw-bolder fs-7 text-uppercase gs-0">
+								<th class="min-w-200px">Location</th>
+								<th class="min-w-100px">Details</th>
+								<th class="min-w-100px">Price</th>
+								<th class="min-w-100px">Size</th>
+								<th class="text-end min-w-100px">Actions</th>
+							</tr>
+						</thead>
+						<tbody class="text-gray-600 fw-bold">
+							{% for property in properties %}
+								<tr>
+									<td>
+										{% if property.mainPicture %}
+											<img src="{{ asset('uploads/properties/main/' ~ property.mainPicture) }}" alt="Main picture" style="max-width: 100px; max-height: 100px;">
+										{% else %}
+											<span class="text-muted">No main picture</span>
+										{% endif %}
+									</td>
+									<td>
+										<span class="text-gray-800 text-hover-primary fw-bold">
+											{% if property.city %}
+												{{ property.city }},
+											{% endif %}
+											{{ property.state }}
+											{{ property.zipCode }}
+										</span><br>
+										<span class="text-muted">{{ property.subdivision ?: 'No subdivision' }}</span>
+									</td>
+									<td>
+										<span class="text-gray-800">{{ property.yearBuilt ?: 'N/A' }}
+											built</span><br>
+										<span class="text-muted">{{ property.mlsId ?: 'No MLS ID' }}</span>
+									</td>
+									<td>
+										<span class="text-gray-800">${{ property.listingPrice|number_format(0) ?: 'N/A' }}</span><br>
+										<span class="text-muted">${{ property.pricePerSqft|number_format(2) }}/sqft</span>
+									</td>
+									<td>
+										<span class="text-gray-800">{{ property.livableArea|number_format(0) }}
+											sqft</span><br>
+										<span class="text-muted">{{ property.lotSizeAcres|number_format(2) }}
+											acres</span>
+									</td>
+									<td class="text-end">
+										<button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_show_property_{{ property.id }}">View</button>
+										<button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_property_{{ property.id }}">Edit</button>
+										<button class="btn btn-sm btn-danger" data-kt-delete-action data-kt-delete-url="{{ path('admin_properties_delete', {'id': property.id}) }}" data-kt-delete-token="{{ csrf_token('delete' ~ property.id) }}">
+											Delete
+										</button>
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Add Property Modal -->
+<div class="modal fade" id="kt_modal_add_property" tabindex="-1" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered mw-650px">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="fw-bolder">Add Property</h2>
+				<div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-properties-modal-action="close">
+					<span class="svg-icon svg-icon-1">
+						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+							<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+							<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+						</svg>
+					</span>
+				</div>
+			</div>
+			<div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+				{{ form_start(form, {
+                    'attr': {
+                        'id': 'kt_modal_add_property_form', 
+                        'class': 'form',
+                        'action': path('admin_properties_new')
+                    }
+                }) }}
+				<div class="d-flex flex-column scroll-y me-n7 pe-7">
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.mainPictureFile, 'Main Picture', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.mainPictureFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.planPictureFile, 'Plan Picture', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.planPictureFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-12 fv-row">
+							{{ form_label(form.galleryPicturesFile, 'Gallery Pictures', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.galleryPicturesFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+						</div>
+					</div>
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.city, 'City', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.city, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'City'}}) }}
+						</div>
+						<div class="col-md-3 fv-row">
+							{{ form_label(form.state, 'State', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.state, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'State'}}) }}
+						</div>
+						<div class="col-md-3 fv-row">
+							{{ form_label(form.zipCode, 'Zip Code', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.zipCode, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Zip Code'}}) }}
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.subdivision, 'Subdivision', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.subdivision, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Subdivision'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.region, 'Region', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.region, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Region'}}) }}
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-4 fv-row">
+							{{ form_label(form.yearBuilt, 'Year Built', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.yearBuilt, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Year Built'}}) }}
+						</div>
+						<div class="col-md-4 fv-row">
+							{{ form_label(form.lotSizeAcres, 'Lot Size (acres)', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.lotSizeAcres, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0.00'}}) }}
+						</div>
+						<div class="col-md-4 fv-row">
+							{{ form_label(form.livableArea, 'Livable Area (sqft)', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.livableArea, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0'}}) }}
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.listingPrice, 'Listing Price', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							<div class="input-group">
+								<span class="input-group-text">$</span>
+								{{ form_widget(form.listingPrice, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0.00'}}) }}
+							</div>
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.pricePerSqft, 'Price per Sqft', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							<div class="input-group">
+								<span class="input-group-text">$</span>
+								{{ form_widget(form.pricePerSqft, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0.00'}}) }}
+							</div>
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.dateListed, 'Date Listed', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.dateListed, {'attr': {'class': 'form-control form-control-solid'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.mlsId, 'MLS ID', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.mlsId, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'MLS ID'}}) }}
+						</div>
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.ownershipType, 'Ownership Type', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.ownershipType, {'attr': {'class': 'form-select form-select-solid'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.roadSurface, 'Road Surface', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.roadSurface, {'attr': {'class': 'form-select form-select-solid'}}) }}
+						</div>
+					</div>
+
+					<div class="fv-row mb-7">
+						{{ form_label(form.listingTerms, 'Listing Terms', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+						{{ form_widget(form.listingTerms, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Cash, New Loan'}}) }}
+					</div>
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.longitude, 'Longitude', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.longitude, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '-98.1234567'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.latitude, 'Latitude', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.latitude, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '39.1234567'}}) }}
+						</div>
+					</div>
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.structureArea, 'Listing Terms', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.structureArea, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Cash, New Loan'}}) }}
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(form.finishedBelowGround, 'Listing Terms', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(form.finishedBelowGround, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Cash, New Loan'}}) }}
+						</div>
+					</div>
+				</div>
+				<div class="text-center pt-15">
+					<button type="reset" class="btn btn-light me-3" data-kt-properties-modal-action="cancel">Discard</button>
+					<button type="submit" class="btn btn-primary">
+						<span class="indicator-label">Submit</span>
+						<span class="indicator-progress">Please wait...
+							<span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+						</span>
+					</button>
+				</div>
+				{{ form_end(form) }}
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Show and Edit Modals for each property -->
+{% for property in properties %}
+	<!-- Show Modal -->
+	<div class="modal fade" id="kt_modal_show_property_{{ property.id }}" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered mw-650px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 class="fw-bolder">Property Details</h2>
+					<div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+						<span class="svg-icon svg-icon-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+							</svg>
+						</span>
+					</div>
+				</div>
+				<div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+					<div class="d-flex flex-column">
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Location</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">
+									{% if property.city %}
+										{{ property.city }},
+									{% endif %}
+									{{ property.state }}
+									{{ property.zipCode }}
+								</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Subdivision</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.subdivision ?: 'N/A' }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Year Built</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.yearBuilt ?: 'N/A' }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Lot Size</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.lotSizeAcres|number_format(2) }}
+									acres</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Livable Area</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.livableArea|number_format(0) }}
+									sqft</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Listing Price</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">${{ property.listingPrice|number_format(2) }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Price per Sqft</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">${{ property.pricePerSqft|number_format(2) }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">MLS ID</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.mlsId ?: 'N/A' }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Ownership Type</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.ownershipType }}</span>
+							</div>
+						</div>
+						<div class="row mb-7">
+							<label class="col-lg-4 fw-bold text-muted">Road Surface</label>
+							<div class="col-lg-8">
+								<span class="fw-bolder fs-6 text-gray-800">{{ property.roadSurface }}</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Edit Modal -->
+	<div class="modal fade" id="kt_modal_edit_property_{{ property.id }}" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered mw-650px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h2 class="fw-bolder">Edit Property</h2>
+					<div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+						<span class="svg-icon svg-icon-1">
+							<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+								<rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+								<rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+							</svg>
+						</span>
+					</div>
+				</div>
+				<div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+					{{ form_start(edit_forms[property.id], {
+                        'attr': {
+                            'id': 'kt_modal_edit_property_form_' ~ property.id, 
+                            'class': 'form',
+                            'action': path('admin_properties_edit', {'id': property.id})
+                        }
+                    }) }}
+					<div class="d-flex flex-column scroll-y me-n7 pe-7">
+						<div class="row mb-7">
+							<div class="col-md-6 fv-row">
+								{{ form_label(edit_forms[property.id].mainPictureFile, 'Main Picture', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+								{{ form_widget(edit_forms[property.id].mainPictureFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+							</div>
+							<div class="col-md-6 fv-row">
+								{{ form_label(edit_forms[property.id].planPictureFile, 'Plan Picture', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+								{{ form_widget(edit_forms[property.id].planPictureFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+							</div>
+						</div>
+
+						<div class="row mb-7">
+							<div class="col-12 fv-row">
+								{{ form_label(edit_forms[property.id].galleryPicturesFile, 'Gallery Pictures', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+								{{ form_widget(edit_forms[property.id].galleryPicturesFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
+							</div>
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(edit_forms[property.id].city, 'City', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(edit_forms[property.id].city, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'City'}}) }}
+						</div>
+						<div class="col-md-3 fv-row">
+							{{ form_label(edit_forms[property.id].state, 'State', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(edit_forms[property.id].state, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'State'}}) }}
+						</div>
+						<div class="col-md-3 fv-row">
+							{{ form_label(edit_forms[property.id].zipCode, 'Zip Code', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(edit_forms[property.id].zipCode, {'attr': {'class': 'form-control form-control-solid', 'placeholder': 'Zip Code'}}) }}
+						</div>
+					</div>
+
+					<!-- Include all other fields similarly -->
+					<!-- ... -->
+
+					<div class="row mb-7">
+						<div class="col-md-6 fv-row">
+							{{ form_label(edit_forms[property.id].listingPrice, 'Listing Price', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							<div class="input-group">
+								<span class="input-group-text">$</span>
+								{{ form_widget(edit_forms[property.id].listingPrice, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0.00'}}) }}
+							</div>
+						</div>
+						<div class="col-md-6 fv-row">
+							{{ form_label(edit_forms[property.id].livableArea, 'Livable Area (sqft)', {'label_attr': {'class': 'fs-6 fw-bold mb-2'}}) }}
+							{{ form_widget(edit_forms[property.id].livableArea, {'attr': {'class': 'form-control form-control-solid', 'placeholder': '0'}}) }}
+						</div>
+					</div>
+				</div>
+				<div class="text-center pt-15">
+					<button type="reset" class="btn btn-light me-3" data-kt-properties-modal-action="cancel">Discard</button>
+					<button type="submit" class="btn btn-primary">
+						<span class="indicator-label">Update</span>
+						<span class="indicator-progress">Please wait...
+							<span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+						</span>
+					</button>
+				</div>
+				{{ form_end(edit_forms[property.id]) }}
+			</div>
+		</div>
+	</div>
+</div>{% endfor %}<!-- Delete Confirmation Modal --><div class="modal fade" id="kt_modal_confirm_delete" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered">
+	<div class="modal-content">
+		<div class="modal-header">
+			<h5 class="modal-title">Confirm Delete</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		</div>
+		<div class="modal-body">
+			<p>Are you sure you want to delete this property? This action cannot be undone.</p>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+			<form id="deleteForm" method="post" action="">
+				<input type="hidden" name="_token" value="">
+				<button type="submit" class="btn btn-danger">Delete</button>
+			</form>
+		</div>
+	</div>
+</div></div><!-- Snackbar Notifications --><div id="kt_snackbar" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+<div class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true">
+	<div class="d-flex">
+		<div class="toast-body"></div>
+		<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+	</div>
+</div></div><script>
+document.addEventListener('DOMContentLoaded', function () { // Initialize delete confirmation modal
+const deleteModal = new bootstrap.Modal(document.getElementById('kt_modal_confirm_delete'));
+const deleteForm = document.getElementById('deleteForm');
+
+// Set up delete buttons
+document.querySelectorAll('[data-kt-delete-action]').forEach(button => {
+button.addEventListener('click', function (e) {
+e.preventDefault();
+const url = this.getAttribute('data-kt-delete-url');
+const token = this.getAttribute('data-kt-delete-token');
+
+deleteForm.action = url;
+deleteForm.querySelector('input[name="_token"]').value = token;
+deleteModal.show();
+});
+});
+
+// Handle flash messages as snackbar notifications
+{% for message in app.flashes('success') %}
+showSnackbar('{{ message }}', 'success');{% endfor %}{% for message in app.flashes('error') %}showSnackbar('{{ message }}', 'danger');{% endfor %}
+});
+
+function showSnackbar(message, type = 'success') {
+const snackbar = document.getElementById('kt_snackbar');
+const toast = snackbar.querySelector('.toast');
+
+// Set type (success, error, etc.)
+toast.className = `toast align-items-center text-white bg-${type}`;
+
+// Set message
+toast.querySelector('.toast-body').textContent = message;
+
+// Show the toast
+const bsToast = new bootstrap.Toast(toast);
+bsToast.show();
+}</script>{% endblock %}

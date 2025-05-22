@@ -1,0 +1,460 @@
+<!--begin::sidebar menu-->
+<div
+	class="app-sidebar-menu overflow-hidden flex-column-fluid">
+	<!--begin::Menu wrapper-->
+	<div
+		id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y my-5" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
+		<!--begin::Menu-->
+		<div
+			class="menu menu-column menu-rounded menu-sub-indention px-3" id="#kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
+			<!--begin:Menu item-->
+			<div
+				class="menu-item">
+				<!--begin:Menu link-->
+				<a class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('element-11', 'fs-2') | raw }}</span>
+					<span class="menu-title">Dashboard</span>
+				</a>
+				<!--end:Menu link-->
+			</div>
+			<!--end:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('shield', 'fs-2') | raw }}</span>
+					<span class="menu-title">Admin Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link" href="{{ path('admin_admin_users_index') }}">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">All admins</span>
+						</a>
+					</div>
+					
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('home', 'fs-2') | raw }}</span>
+					<span class="menu-title">Property Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link" href="{{ path('admin_properties_index') }}">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">All Properties</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Approval Queue</span>
+							<span class="menu-badge">
+								<span class="badge badge-danger">5</span>
+							</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Media Gallery</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('profile-circle', 'fs-2') | raw }}</span>
+					<span class="menu-title">Agent Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link" href="{{ path('admin_agents_index') }}">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">All Agents</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Verification</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Performance Analytics</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('briefcase', 'fs-2') | raw }}</span>
+					<span class="menu-title">Agency Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link" href="{{ path('admin_agencies_index') }}">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">All Agencies</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Verification</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('people', 'fs-2') | raw }}</span>
+					<span class="menu-title">User Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link" href="{{ path('admin_users_index') }}">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">All Users</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">User Actions</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('message-text-2', 'fs-2') | raw }}</span>
+					<span class="menu-title">Inquiries & Messages</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Contact Form Messages</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Property Inquiries</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('dollar', 'fs-2') | raw }}</span>
+					<span class="menu-title">Transactions</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Payment Logs</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Invoices</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Commission Tracking</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('document', 'fs-2') | raw }}</span>
+					<span class="menu-title">Content Management</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Blog Posts</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Testimonials</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Static Pages</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">SEO Settings</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('setting-2', 'fs-2') | raw }}</span>
+					<span class="menu-title">Site Settings</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">General Settings</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Email Configuration</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Language & Localization</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('notification', 'fs-2') | raw }}</span>
+					<span class="menu-title">Notifications</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Notification Center</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Email Logs</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				data-kt-menu-trigger="click" class="menu-item menu-accordion">
+				<!--begin:Menu link-->
+				<span class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('shield-tick', 'fs-2') | raw }}</span>
+					<span class="menu-title">Roles & Permissions</span>
+					<span class="menu-arrow"></span>
+				</span>
+				<!--end:Menu link-->
+				<!--begin:Menu sub-->
+				<div class="menu-sub menu-sub-accordion">
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Manage Roles</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Permission Settings</span>
+						</a>
+					</div>
+					<div class="menu-item">
+						<a class="menu-link">
+							<span class="menu-bullet">
+								<span class="bullet bullet-dot"></span>
+							</span>
+							<span class="menu-title">Admin Users</span>
+						</a>
+					</div>
+				</div>
+				<!--end:Menu sub-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				class="menu-item pt-5">
+				<!--begin:Menu content-->
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Help</span>
+				</div>
+				<!--end:Menu content-->
+			</div>
+			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			<div
+				class="menu-item">
+				<!--begin:Menu link-->
+				<a class="menu-link">
+					<span class="menu-icon">{{ theme.getIcon('abstract-26', 'fs-2') | raw }}</span>
+					<span class="menu-title">Documentation</span>
+				</a>
+				<!--end:Menu link-->
+			</div>
+			<!--end:Menu item-->
+		</div>
+		<!--end::Menu-->
+	</div>
+	<!--end::Menu wrapper-->
+</div>
+<!--end::sidebar menu-->

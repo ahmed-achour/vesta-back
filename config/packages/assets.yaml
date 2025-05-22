@@ -1,0 +1,7 @@
+framework:
+    assets:
+        packages:
+            images:
+                base_path: /images
+            public:
+                base_path: /public
