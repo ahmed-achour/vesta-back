@@ -6,14 +6,30 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * AgencyMembers
- *
- * @ORM\Table(name="agency_members")
- * @ORM\Entity
-*@ORM\Entity(repositoryClass="App\Repository\AgencyMembersRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\AgencyMembersRepository")
+ * @ORM\Table(
+ *     name="agency_members",
+ *     uniqueConstraints={
+ *         @ORM\UniqueConstraint(name="agency_agent_unique", columns={"agency_id", "agent_id"})
+ *     }
+ * )
  */
 class AgencyMembers
 {
+        /**
+     * @ORM\Id
+     * @ORM\ManyToOne(targetEntity="App\Entity\Agency")
+     * @ORM\JoinColumn(name="agency_id", referencedColumnName="agency_id", nullable=false)
+     */
+    private $agency;
+
+    /**
+     * @ORM\Id
+     * @ORM\ManyToOne(targetEntity="App\Entity\Agents")
+     * @ORM\JoinColumn(name="agent_id", referencedColumnName="agent_id", nullable=false)
+     */
+    private $agent;
+
     /**
      * @var int
      *
@@ -96,6 +112,27 @@ class AgencyMembers
     {
         $this->position = $position;
 
+        return $this;
+    }
+     public function getAgency(): ?Agency
+    {
+        return $this->agency;
+    }
+
+    public function setAgency(?Agency $agency): self
+    {
+        $this->agency = $agency;
+        return $this;
+    }
+
+    public function getAgent(): ?Agents
+    {
+        return $this->agent;
+    }
+
+    public function setAgent(?Agents $agent): self
+    {
+        $this->agent = $agent;
         return $this;
     }
 

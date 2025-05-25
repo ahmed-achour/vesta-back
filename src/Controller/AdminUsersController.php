@@ -15,6 +15,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Controller\Bootstrap\DefaultLayoutController;
 use App\Service\FileUploader;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use App\Form\AdminSignUpType;
+use App\Form\AdminSignInType;
 
 #[Route('/admin/admin-users')]
 class AdminUsersController extends DefaultLayoutController
@@ -150,5 +153,76 @@ class AdminUsersController extends DefaultLayoutController
         }
 
         return $this->redirectToRoute('admin_admin_users_index', [], Response::HTTP_SEE_OTHER);
+    }
+     #[Route('/signin', name: 'admin_signin')]
+    public function signIn(AuthenticationUtils $authenticationUtils): Response
+    {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        // get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+        
+        // last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        return $this->render('signin.html.twig', [
+            'last_username' => $lastUsername,
+            'error' => $error
+        ]);
+    }
+
+    #[Route('/signup', name: 'admin_signup')]
+    public function signUp(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        EntityManagerInterface $entityManager,
+        FileUploader $fileUploader
+    ): Response {
+        if ($this->getUser()) {
+            return $this->redirectToRoute('admin_dashboard');
+        }
+
+        $user = new AdminUsers();
+        $form = $this->createForm(AdminSignUpType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // encode the plain password
+            $user->setPasswordHash(
+                $passwordHasher->hashPassword(
+                    $user,
+                    $form->get('plainPassword')->getData()
+                )
+            );
+
+            /** @var UploadedFile $profilePictureFile */
+            $profilePictureFile = $form->get('profilePictureFile')->getData();
+            if ($profilePictureFile) {
+                $fileName = $fileUploader->upload($profilePictureFile);
+                $user->setProfilePicture('/uploads/profile_pictures/' . $fileName);
+            }
+
+            $user->setCreatedAt(new \DateTime());
+            $user->setUpdatedAt(new \DateTime());
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // automatically authenticate the user after registration
+            return $this->redirectToRoute('admin_signin');
+        }
+
+        return $this->render('signup.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/logout', name: 'admin_logout')]
+    public function logout(): void
+    {
+        // controller can be blank: it will never be called!
+        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 }

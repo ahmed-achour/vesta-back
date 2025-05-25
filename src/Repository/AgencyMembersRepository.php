@@ -20,6 +20,17 @@ class AgencyMembersRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, AgencyMembers::class);
     }
+    public function isAgentInAgency(int $agentId, int $agencyId): bool
+{
+    return (bool) $this->createQueryBuilder('am')
+        ->select('COUNT(am)')
+        ->where('am.agent = :agentId')
+        ->andWhere('am.agency = :agencyId')
+        ->setParameter('agentId', $agentId)
+        ->setParameter('agencyId', $agencyId)
+        ->getQuery()
+        ->getSingleScalarResult();
+}
 
 //    /**
 //     * @return AgencyMembers[] Returns an array of AgencyMembers objects

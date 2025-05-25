@@ -4,6 +4,13 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * Agents
@@ -12,7 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
 *@ORM\Entity(repositoryClass="App\Repository\AgentsRepository")
  */
-class Agents
+class Agents  implements UserInterface , PasswordAuthenticatedUserInterface
 {
     /**
      * @var int
@@ -120,6 +127,24 @@ class Agents
      * @ORM\Column(name="join_date", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP"})
      */
     private $joinDate = 'CURRENT_TIMESTAMP';
+
+   /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $password;
+
+    // ... existing methods ...
+
+    /**
+     * @see PasswordAuthenticatedUserInterface
+     */
+
+
+    public function setPassword(?string $password): self
+    {
+        $this->password = $password;
+        return $this;
+    }
 
     public function getAgentId(): ?string
     {
@@ -294,5 +319,43 @@ class Agents
         return $this;
     }
 
+    /**
+     * Returns ONLY ROLE_AGENT (fixed role).
+     */
+    public function getRoles(): array
+    {
+        return ['ROLE_AGENT']; // Always returns this exact role
+    }
+
+    // Required for UserInterface
+    public function getPassword(): ?string { 
+        return null; // Or your password field if agents can log in
+    }
+    public function getSalt(): ?string { return null; }
+    public function eraseCredentials() {}
+    public function getUserIdentifier(): string { return (string)$this->email; }
+    public function isMemberOf(Agency $agency): bool
+{
+    foreach ($this->getAgencyMemberships() as $membership) {
+        if ($membership->getAgency()->getAgencyId() === $agency->getAgencyId()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @return Collection|AgencyMembers[]
+ */
+public function getAgencyMemberships(): Collection
+{
+    return $this->agencyMembers;
+}
+
+// Add this inverse side if using bidirectional relationship
+/**
+ * @ORM\OneToMany(targetEntity="AgencyMembers", mappedBy="agent")
+ */
+private $agencyMembers;
 
 }

@@ -1,39 +1,104 @@
 security:
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+            algorithm: auto
+            cost: 13 # Default for bcrypt
+            time_cost: 3 # Default for argon2i
+            memory_cost: 65536 # Default for argon2i
+
     providers:
-        users_in_memory: { memory: null }
+        agents:
+            id: App\Security\AgentUserProvider
+        agencies:
+            id: App\Security\AgencyProvider
+        admin_users:
+            id: App\Security\AdminUserProvider
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-        main:
-            lazy: true
-            provider: users_in_memory
+        agent:
+            provider: agents
+            pattern: ^/agent
+            form_login:
+                login_path: agent_login
+                check_path: agent_login_check
+                enable_csrf: true
+                username_parameter: login_identifier
+                default_target_path: admin_dashboard
+            logout:
+                path: agent_logout
+                target: agent_login
+            # Enable remember me functionality (optional)
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 week
+                path: /agent
 
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
+        agency:
+            provider: agencies
+            pattern: ^/agency
+            form_login:
+                login_path: agency_login
+                check_path: agency_login_check
+                enable_csrf: true
+                username_parameter: login_identifier
+                default_target_path: admin_dashboard
+            logout:
+                path: agency_logout
+                target: agency_login
+            # Enable remember me functionality (optional)
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 week
+                path: ^/agency
+            
+        admin:
+            pattern: ^/admin
+            provider: admin_users
+            form_login:
+                login_path: admin_login
+                check_path: admin_login_check
+                enable_csrf: true
+                username_parameter: login_identifier
+                default_target_path: admin_dashboard
+            logout:
+                path: admin_logout
+                target: admin_login
+            # Enable remember me functionality (optional)
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 week
+                path: /admin
 
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
 
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/admin/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/register$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/reset-password$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/dashboard$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/dashboard$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/dashboard$, roles: PUBLIC_ACCESS }
+        - { path: ^/admin/dashboard$, roles: PUBLIC_ACCESS }   
+        - { path: ^/admin/super$, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+
+    # Role hierarchy for better access control
+    role_hierarchy:
+        ROLE_ADMIN:       [ROLE_USER]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
 
 when@test:
     security:
         password_hashers:
-            # By default, password hashers are resource intensive and take time. This is
-            # important to generate secure password hashes. In tests however, secure hashes
-            # are not important, waste resources and increase test times. The following
-            # reduces the work factor to the lowest possible values.
+            App\Entity\AdminUsers:
+                algorithm: auto
+                cost: 4 # Lowered for tests
+                time_cost: 3
+                memory_cost: 10
             Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
                 algorithm: auto
-                cost: 4 # Lowest possible value for bcrypt
-                time_cost: 3 # Lowest possible value for argon
-                memory_cost: 10 # Lowest possible value for argon
+                cost: 4
+                time_cost: 3
+                memory_cost: 10
