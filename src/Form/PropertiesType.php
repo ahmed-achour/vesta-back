@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Form;
 
 use App\Entity\Properties;
@@ -87,14 +88,14 @@ class PropertiesType  extends AbstractType
                 'asset_helper' => true,
                 'label' => 'Main Picture',
             ])
-            
+
             ->add('galleryPicturesFile', FileType::class, [
                 'label' => 'Gallery Pictures',
                 'multiple' => true,
-                'mapped' => false,
                 'required' => false,
+                'mapped' => false, // Keep this as false since we'll handle manually
             ])
-            
+
             ->add('planPictureFile', VichImageType::class, [
                 'required' => false,
                 'allow_delete' => true,
@@ -105,7 +106,6 @@ class PropertiesType  extends AbstractType
                 'asset_helper' => true,
                 'label' => 'Plan Picture',
             ]);
-
     }
 
     public function configureOptions(OptionsResolver $resolver): void

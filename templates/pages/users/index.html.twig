@@ -2,6 +2,78 @@
 
 {% block page_title %}Users Management{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <style>
+        .password-strength-meter {
+            margin-top: 0.5rem;
+        }
+        .password-strength-meter .progress {
+            height: 5px;
+            border-radius: 3px;
+            background-color: #e9ecef;
+        }
+        .password-strength-meter .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .password-requirements {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.3rem;
+        }
+        .requirement i {
+            margin-right: 0.5rem;
+            font-size: 0.6rem;
+        }
+        .requirement.valid i {
+            color: #28a745;
+        }
+        .requirement.invalid i {
+            color: #dc3545;
+        }
+        .strength-text {
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            font-weight: bold;
+        }
+        .strength-weak {
+            color: #dc3545;
+        }
+        .strength-medium {
+            color: #fd7e14;
+        }
+        .strength-strong {
+            color: #28a745;
+        }
+        .strength-very-strong {
+            color: #007bff;
+        }
+        .requirement-text {
+            margin-left: 0.5rem;
+        }
+        .requirement.valid .requirement-text {
+            text-decoration: line-through;
+            color: #28a745;
+        }
+        .requirement.invalid .requirement-text {
+            color: #dc3545;
+        }
+        .password-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
     <div class="post d-flex flex-column-fluid" id="kt_post">
@@ -11,7 +83,7 @@
                     <div class="card-title">
                         <div class="d-flex align-items-center position-relative my-1">
                             <span class="svg-icon svg-icon-1 position-absolute ms-6">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                     <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>
                                     <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black"/>
                                 </svg>
@@ -21,9 +93,16 @@
                     </div>
                     <div class="card-toolbar">
                         <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
+                            <select class="form-select form-select-solid w-150px me-3" data-kt-user-table-filter="status">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="suspended">Suspended</option>
+                            </select>
+                            
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_add_user">
                                 <span class="svg-icon svg-icon-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                         <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="black"/>
                                         <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="black"/>
                                     </svg>
@@ -50,7 +129,7 @@
                                     <td class="d-flex align-items-center">
                                         <div class="symbol symbol-circle symbol-50px overflow-hidden me-3">
                                             {% if user.profilePhotoUrl %}
-                                                <img src="{{ asset(user.profilePhotoUrl) }}" alt="Profile Photo"/>
+                                                <img src="{{ asset(user.profilePhotoUrl) }}" alt="Profile Photo" class="w-100"/>
                                             {% else %}
                                                 <div class="symbol-label fs-3 bg-light-primary text-primary">
                                                     {{ user.email|first|upper }}
@@ -76,11 +155,13 @@
                                     </td>
                                     <td>{{ user.createdAt|date('Y-m-d H:i') }}</td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_user_{{ user.userId }}">Edit</button>
-                                        <form method="post" action="{{ path('admin_users_delete', {'userId': user.userId}) }}" style="display: inline-block;">
-                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.userId) }}">
-                                            <button class="btn btn-sm btn-danger">Delete</button>
-                                        </form>
+                                        <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_show_admin_{{ user.userId }}">View</button>
+                                        <button class="btn btn-sm btn-light btn-active-light-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_user_{{ user.userId }}" data-bs-dismiss="modal">Edit</button>
+                                        <button class="btn btn-sm btn-danger" data-kt-delete-action="true" 
+                                                data-kt-delete-url="{{ path('admin_users_delete', {'userId': user.userId}) }}" 
+                                                data-kt-delete-token="{{ csrf_token('delete' ~ user.userId) }}">
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             {% endfor %}
@@ -90,99 +171,38 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add User Modal -->
-<div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered mw-650px">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="fw-bolder">Add User</h2>
-                <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close">
-                    <span class="svg-icon svg-icon-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
-                            <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
-                            <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
-                        </svg>
-                    </span>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="kt_modal_confirm_delete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-            <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
-                {{ form_start(form, {
-                    'attr': {
-                        'id': 'kt_modal_add_user_form', 
-                        'class': 'form',
-                        'action': path('admin_users_new')
-                    }
-                }) }}
-                <div class="d-flex flex-column scroll-y me-n7 pe-7">
-                    <div class="fv-row mb-7" data-kt-image-input="true">
-                        {{ form_label(form.profilePhotoFile, 'Profile Photo', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                        <div class="image-input image-input-outline" data-kt-image-input="true">
-                            <div class="image-input-wrapper w-125px h-125px" data-kt-image-preview="true"></div>
-                            {{ form_widget(form.profilePhotoFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
-                            <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
-                                <i class="bi bi-pencil-fill fs-7"></i>
-                            </label>
-                            <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
-                                <i class="bi bi-x fs-2"></i>
-                            </span>
-                            <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove avatar">
-                                <i class="bi bi-x fs-2"></i>
-                            </span>
-                        </div>
-                        {{ form_errors(form.profilePhotoFile) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.email, 'Email', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.email, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Email'}}) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.firstName, 'First Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.firstName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'First Name'}}) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.lastName, 'Last Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.lastName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Last Name'}}) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.screenName, 'Screen Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.screenName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Screen Name'}}) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.plainPassword, 'Password', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.plainPassword, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Password'}}) }}
-                    </div>
-                    <div class="fv-row mb-7">
-                        {{ form_label(form.accountStatus, 'Account Status', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                        {{ form_widget(form.accountStatus, {'attr': {'class': 'form-select form-select-solid'}}) }}
-                    </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this user? This action cannot be undone.</p>
                 </div>
-                <div class="text-center pt-15">
-                    <button type="reset" class="btn btn-light me-3" data-kt-users-modal-action="cancel">Discard</button>
-                    <button type="submit" class="btn btn-primary">
-                        <span class="indicator-label">Submit</span>
-                        <span class="indicator-progress">Please wait...
-                            <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                        </span>
-                    </button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post" action="">
+                        <input type="hidden" name="_token" value="">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
                 </div>
-                {{ form_end(form) }}
             </div>
         </div>
     </div>
-</div>
 
-<!-- Edit Modals for each user -->
-{% for user in users %}
-    <div class="modal fade" id="kt_modal_edit_user_{{ user.userId }}" tabindex="-1" aria-hidden="true">
+    <!-- Add User Modal -->
+    <div class="modal fade" id="kt_modal_add_user" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered mw-650px">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2 class="fw-bolder">Edit User</h2>
-                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                    <h2 class="fw-bolder">Add User</h2>
+                    <div class="btn btn-icon btn-sm btn-active-icon-primary" data-kt-users-modal-action="close">
                         <span class="svg-icon svg-icon-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewbox="0 0 24 24" fill="none">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
                                 <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
                                 <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
                             </svg>
@@ -190,90 +210,804 @@
                     </div>
                 </div>
                 <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
-                    {{ form_start(edit_forms[user.userId], {
+                    {{ form_start(form, {
                         'attr': {
-                            'id': 'kt_modal_edit_user_form_' ~ user.userId, 
+                            'id': 'kt_modal_add_user_form', 
                             'class': 'form',
-                            'action': path('admin_users_edit', {'userId': user.userId})
+                            'action': path('admin_users_new'),
+                            'enctype': 'multipart/form-data'
                         }
                     }) }}
                     <div class="d-flex flex-column scroll-y me-n7 pe-7">
+                        <!-- Profile Photo -->
                         <div class="fv-row mb-7" data-kt-image-input="true">
-                            {{ form_label(edit_forms[user.userId].profilePhotoFile, 'Profile Photo', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                            {{ form_label(form.profilePhotoFile, 'Profile Photo', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
                             <div class="image-input image-input-outline" data-kt-image-input="true">
-                                <div class="image-input-wrapper w-125px h-125px" data-kt-image-preview="true" style="background-image: url({% if user.profilePhotoUrl %}{{ asset(user.profilePhotoUrl) }}{% endif %})"></div>
-                                {{ form_widget(edit_forms[user.userId].profilePhotoFile, {'attr': {'class': 'form-control form-control-solid'}}) }}
-                                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="change" data-bs-toggle="tooltip" title="Change avatar">
+                                <div class="image-input-wrapper w-125px h-125px" data-kt-image-preview="true"></div>
+                                {{ form_widget(form.profilePhotoFile, {'attr': {
+                                    'class': 'form-control form-control-solid',
+                                    'accept': 'image/*'
+                                }}) }}
+                                <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                       data-kt-image-input-action="change" 
+                                       data-bs-toggle="tooltip" 
+                                       title="Change avatar">
                                     <i class="bi bi-pencil-fill fs-7"></i>
                                 </label>
-                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="cancel" data-bs-toggle="tooltip" title="Cancel avatar">
+                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                      data-kt-image-input-action="cancel" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Cancel avatar">
                                     <i class="bi bi-x fs-2"></i>
                                 </span>
-                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" data-kt-image-input-action="remove" data-bs-toggle="tooltip" title="Remove avatar">
+                                <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                      data-kt-image-input-action="remove" 
+                                      data-bs-toggle="tooltip" 
+                                      title="Remove avatar">
                                     <i class="bi bi-x fs-2"></i>
                                 </span>
                             </div>
-                            {{ form_errors(edit_forms[user.userId].profilePhotoFile) }}
+                            <div class="text-danger" id="profilePhotoError"></div>
                         </div>
+
+                        <!-- Email -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].email, 'Email', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].email, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Email'}}) }}
+                            {{ form_label(form.email, 'Email', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.email, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                'placeholder': 'Email',
+                                'required': 'required'
+                            }}) }}
+                            <div class="text-danger" id="emailError"></div>
                         </div>
+
+                        <!-- First Name -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].firstName, 'First Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].firstName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'First Name'}}) }}
+                            {{ form_label(form.firstName, 'First Name', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.firstName, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                'placeholder': 'First Name',
+                                'required': 'required'
+                            }}) }}
+                            <div class="text-danger" id="firstNameError"></div>
                         </div>
+
+                        <!-- Last Name -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].lastName, 'Last Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].lastName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Last Name'}}) }}
+                            {{ form_label(form.lastName, 'Last Name', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.lastName, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                'placeholder': 'Last Name',
+                                'required': 'required'
+                            }}) }}
+                            <div class="text-danger" id="lastNameError"></div>
                         </div>
+
+                        <!-- Screen Name -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].screenName, 'Screen Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].screenName, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Screen Name'}}) }}
+                            {{ form_label(form.screenName, 'Screen Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.screenName, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                'placeholder': 'Screen Name'
+                            }}) }}
+                            <div class="text-danger" id="screenNameError"></div>
                         </div>
+
+                        <!-- Password with Strength Meter -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].plainPassword, 'Password (leave blank to keep current)', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].plainPassword, {'attr': {'class': 'form-control form-control-solid mb-3 mb-lg-0', 'placeholder': 'Password'}}) }}
+                            {{ form_label(form.plainPassword, 'Password', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.plainPassword, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0 password-input', 
+                                'placeholder': 'Password',
+                                'required': 'required',
+                                'minlength': '8',
+                                'pattern': '(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}'
+                            }}) }}
+                            <div class="password-strength-meter">
+                                <div class="progress">
+                                    <div id="password-strength-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div id="strength-text" class="strength-text"></div>
+                                <div class="password-requirements">
+                                    <div class="requirement" id="length-req">
+                                        <i class="bi bi-circle"></i>
+                                        <span class="requirement-text">At least 8 characters</span>
+                                    </div>
+                                    <div class="requirement" id="uppercase-req">
+                                        <i class="bi bi-circle"></i>
+                                        <span class="requirement-text">At least 1 uppercase letter</span>
+                                    </div>
+                                    <div class="requirement" id="lowercase-req">
+                                        <i class="bi bi-circle"></i>
+                                        <span class="requirement-text">At least 1 lowercase letter</span>
+                                    </div>
+                                    <div class="requirement" id="number-req">
+                                        <i class="bi bi-circle"></i>
+                                        <span class="requirement-text">At least 1 number</span>
+                                    </div>
+                                    <div class="requirement" id="special-req">
+                                        <i class="bi bi-circle"></i>
+                                        <span class="requirement-text">At least 1 special character</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="password-error" id="passwordError">Veuillez respecter le format requis</div>
                         </div>
+
+                        <!-- Account Status -->
                         <div class="fv-row mb-7">
-                            {{ form_label(edit_forms[user.userId].accountStatus, 'Account Status', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
-                            {{ form_widget(edit_forms[user.userId].accountStatus, {'attr': {'class': 'form-select form-select-solid'}}) }}
+                            {{ form_label(form.accountStatus, 'Account Status', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.accountStatus, {'attr': {
+                                'class': 'form-select form-select-solid'
+                            }}) }}
+                            <div class="text-danger" id="accountStatusError"></div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="fv-row mb-7">
+                            {{ form_label(form.phoneNumber, 'Phone number', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                            {{ form_widget(form.phoneNumber, {'attr': {
+                                'class': 'form-control form-control-solid mb-3 mb-lg-0',
+                                'placeholder': 'Phone number',
+                                'required': 'required',
+                                'pattern': '^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$'
+                            }}) }}
+                            <div class="text-danger" id="phoneNumberError"></div>
                         </div>
                     </div>
                     <div class="text-center pt-15">
                         <button type="reset" class="btn btn-light me-3" data-kt-users-modal-action="cancel">Discard</button>
-                        <button type="submit" class="btn btn-primary">
-                            <span class="indicator-label">Update</span>
+                        <button type="submit" class="btn btn-primary" id="submit-button">
+                            <span class="indicator-label">Submit</span>
                             <span class="indicator-progress">Please wait...
                                 <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
                             </span>
                         </button>
                     </div>
-                    {{ form_end(edit_forms[user.userId]) }}
+                    {{ form_end(form) }}
                 </div>
             </div>
         </div>
     </div>
-{% endfor %}
 
-<!-- Snackbar Notifications -->
-<div id="kt_snackbar" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-    <div class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    <!-- View Modals for each user -->
+    {% for user in users %}
+        <div class="modal fade" id="kt_modal_show_admin_{{ user.userId }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mw-650px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="fw-bolder">User Details</h2>
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                            <span class="svg-icon svg-icon-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+                                    <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                        <div class="d-flex flex-column align-items-center mb-7">
+                            <div class="symbol symbol-100px symbol-circle mb-5">
+                                {% if user.profilePhotoUrl %}
+                                    <img src="{{ asset(user.profilePhotoUrl) }}" alt="Profile Photo" class="img-fluid"/>
+                                {% else %}
+                                    <div class="symbol-label fs-1 bg-light-primary text-primary">
+                                        {{ user.email|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <h3 class="fw-bold text-dark">{{ user.firstName }} {{ user.lastName }}</h3>
+                            <span class="text-muted">{{ user.screenName }}</span>
+                        </div>
+                        
+                        <div class="separator separator-dashed my-5"></div>
+                        
+                        <div class="row g-5 mb-7">
+                            <div class="col-sm-6">
+                                <div class="fw-bold fs-7 text-muted mb-1">Email:</div>
+                                <div class="fw-bold fs-6">{{ user.email }}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="fw-bold fs-7 text-muted mb-1">Account Status:</div>
+                                <div class="fw-bold fs-6">
+                                    {% if user.accountStatus == 'active' %}
+                                        <span class="badge badge-light-success">Active</span>
+                                    {% elseif user.accountStatus == 'inactive' %}
+                                        <span class="badge badge-light-warning">Inactive</span>
+                                    {% else %}
+                                        <span class="badge badge-light-danger">Suspended</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-5 mb-7">
+                            <div class="col-sm-6">
+                                <div class="fw-bold fs-7 text-muted mb-1">Created At:</div>
+                                <div class="fw-bold fs-6">{{ user.createdAt|date('Y-m-d H:i') }}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="fw-bold fs-7 text-muted mb-1">Last Updated:</div>
+                                <div class="fw-bold fs-6">
+                                    {% if user.updatedAt %}
+                                        {{ user.updatedAt|date('Y-m-d H:i') }}
+                                    {% else %}
+                                        Never updated
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-5 mb-7">
+                            <div class="col-sm-6">
+                                <div class="fw-bold fs-7 text-muted mb-1">Phone Number:</div>
+                                <div class="fw-bold fs-6">{{ user.phoneNumber ?? 'Not provided' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kt_modal_edit_user_{{ user.userId }}" data-bs-dismiss="modal">
+                            Edit User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Edit Modals for each user -->
+    {% for user in users %}
+        <div class="modal fade" id="kt_modal_edit_user_{{ user.userId }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered mw-650px">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="fw-bolder">Edit User</h2>
+                        <div class="btn btn-icon btn-sm btn-active-icon-primary" data-bs-dismiss="modal">
+                            <span class="svg-icon svg-icon-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                    <rect opacity="0.5" x="6" y="17.3137" width="16" height="2" rx="1" transform="rotate(-45 6 17.3137)" fill="black"/>
+                                    <rect x="7.41422" y="6" width="16" height="2" rx="1" transform="rotate(45 7.41422 6)" fill="black"/>
+                                </svg>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="modal-body scroll-y mx-5 mx-xl-15 my-7">
+                        {{ form_start(edit_forms[user.userId], {
+                            'attr': {
+                                'id': 'kt_modal_edit_user_form_' ~ user.userId, 
+                                'class': 'form',
+                                'action': path('admin_users_edit', {'userId': user.userId}),
+                                'enctype': 'multipart/form-data'
+                            }
+                        }) }}
+                        <div class="d-flex flex-column scroll-y me-n7 pe-7">
+                            <div class="fv-row mb-7" data-kt-image-input="true">
+                                {{ form_label(edit_forms[user.userId].profilePhotoFile, 'Profile Photo', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                                <div class="image-input image-input-outline" data-kt-image-input="true">
+                                    <div class="image-input-wrapper w-125px h-125px" data-kt-image-preview="true" style="background-image: url({% if user.profilePhotoUrl %}{{ asset(user.profilePhotoUrl) }}{% endif %})"></div>
+                                    {{ form_widget(edit_forms[user.userId].profilePhotoFile, {'attr': {
+                                        'class': 'form-control form-control-solid',
+                                        'accept': 'image/*'
+                                    }}) }}
+                                    <label class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                           data-kt-image-input-action="change" 
+                                           data-bs-toggle="tooltip" 
+                                           title="Change avatar">
+                                        <i class="bi bi-pencil-fill fs-7"></i>
+                                    </label>
+                                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                          data-kt-image-input-action="cancel" 
+                                          data-bs-toggle="tooltip" 
+                                          title="Cancel avatar">
+                                        <i class="bi bi-x fs-2"></i>
+                                    </span>
+                                    <span class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow" 
+                                          data-kt-image-input-action="remove" 
+                                          data-bs-toggle="tooltip" 
+                                          title="Remove avatar">
+                                        <i class="bi bi-x fs-2"></i>
+                                    </span>
+                                </div>
+                                {{ form_errors(edit_forms[user.userId].profilePhotoFile) }}
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].email, 'Email', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].email, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                    'placeholder': 'Email',
+                                    'required': 'required'
+                                }}) }}
+                                <div class="text-danger" id="edit-emailError-{{ user.userId }}"></div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].firstName, 'First Name', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].firstName, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                    'placeholder': 'First Name',
+                                    'required': 'required'
+                                }}) }}
+                                <div class="text-danger" id="edit-firstNameError-{{ user.userId }}"></div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].lastName, 'Last Name', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].lastName, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                    'placeholder': 'Last Name',
+                                    'required': 'required'
+                                }}) }}
+                                <div class="text-danger" id="edit-lastNameError-{{ user.userId }}"></div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].screenName, 'Screen Name', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].screenName, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0', 
+                                    'placeholder': 'Screen Name'
+                                }}) }}
+                                <div class="text-danger" id="edit-screenNameError-{{ user.userId }}"></div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].plainPassword, 'Password (leave blank to keep current)', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].plainPassword, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0 password-input', 
+                                    'placeholder': 'Password',
+                                    'minlength': '8',
+                                    'pattern': '(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{8,}'
+                                }}) }}
+                                <div class="password-strength-meter">
+                                    <div class="progress">
+                                        <div id="edit-password-strength-bar-{{ user.userId }}" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <div id="edit-strength-text-{{ user.userId }}" class="strength-text"></div>
+                                    <div class="password-requirements">
+                                        <div class="requirement" id="edit-length-req-{{ user.userId }}">
+                                            <i class="bi bi-circle"></i>
+                                            <span class="requirement-text">At least 8 characters</span>
+                                        </div>
+                                        <div class="requirement" id="edit-uppercase-req-{{ user.userId }}">
+                                            <i class="bi bi-circle"></i>
+                                            <span class="requirement-text">At least 1 uppercase letter</span>
+                                        </div>
+                                        <div class="requirement" id="edit-lowercase-req-{{ user.userId }}">
+                                            <i class="bi bi-circle"></i>
+                                            <span class="requirement-text">At least 1 lowercase letter</span>
+                                        </div>
+                                        <div class="requirement" id="edit-number-req-{{ user.userId }}">
+                                            <i class="bi bi-circle"></i>
+                                            <span class="requirement-text">At least 1 number</span>
+                                        </div>
+                                        <div class="requirement" id="edit-special-req-{{ user.userId }}">
+                                            <i class="bi bi-circle"></i>
+                                            <span class="requirement-text">At least 1 special character</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="password-error" id="edit-passwordError-{{ user.userId }}">Veuillez respecter le format requis</div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].accountStatus, 'Account Status', {'label_attr': {'class': 'fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].accountStatus, {'attr': {
+                                    'class': 'form-select form-select-solid'
+                                }}) }}
+                                <div class="text-danger" id="edit-accountStatusError-{{ user.userId }}"></div>
+                            </div>
+                            <div class="fv-row mb-7">
+                                {{ form_label(edit_forms[user.userId].phoneNumber, 'Phone number', {'label_attr': {'class': 'required fw-bold fs-6 mb-2'}}) }}
+                                {{ form_widget(edit_forms[user.userId].phoneNumber, {'attr': {
+                                    'class': 'form-control form-control-solid mb-3 mb-lg-0',
+                                    'placeholder': 'Phone number',
+                                    'required': 'required',
+                                    'pattern': '^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$'
+                                }}) }}
+                                <div class="text-danger" id="edit-phoneNumberError-{{ user.userId }}"></div>
+                            </div>
+                        </div>
+                        <div class="text-center pt-15">
+                            <button type="reset" class="btn btn-light me-3" data-kt-users-modal-action="cancel">Discard</button>
+                            <button type="submit" class="btn btn-primary" id="edit-submit-button-{{ user.userId }}">
+                                <span class="indicator-label">Update</span>
+                                <span class="indicator-progress">Please wait...
+                                    <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                                </span>
+                            </button>
+                        </div>
+                        {{ form_end(edit_forms[user.userId]) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <!-- Snackbar Notifications -->
+    <div id="kt_snackbar" class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div class="toast align-items-center text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
         </div>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.2.9/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Handle flash messages as snackbar notifications
+        // Handle flash messages
         {% for message in app.flashes('success') %}
             showSnackbar('{{ message }}', 'success');
         {% endfor %}
         {% for message in app.flashes('error') %}
             showSnackbar('{{ message }}', 'danger');
+        {% endfor %}
+
+        // Initialize DataTable with advanced search
+        const table = $('#kt_table_users').DataTable({
+            responsive: true,
+            searchDelay: 500,
+            language: {
+                search: "",
+                searchPlaceholder: "Search users...",
+                lengthMenu: "Show _MENU_",
+            },
+            dom: 
+                "<'row'" +
+                    "<'col-sm-12 col-md-6 d-flex align-items-center justify-content-start'f>" +
+                    "<'col-sm-12 col-md-6 d-flex align-items-center justify-content-end'l>" +
+                ">" +
+                "<'table-responsive'tr>" +
+                "<'row'" +
+                    "<'col-sm-12 col-md-5 d-flex align-items-center justify-content-center justify-content-md-start'i>" +
+                    "<'col-sm-12 col-md-7 d-flex align-items-center justify-content-center justify-content-md-end'p>" +
+                ">",
+            initComplete: function() {
+                // Customize search input to match Keen theme style
+                const searchInput = $('.dataTables_filter input')
+                    .addClass('form-control form-control-solid w-250px ps-14')
+                    .attr('placeholder', 'Search users');
+                
+                $('.dataTables_filter').addClass('position-relative').prepend(
+                    '<span class="svg-icon svg-icon-1 position-absolute ms-6">' +
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">' +
+                    '<rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="black"/>' +
+                    '<path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="black"/>' +
+                    '</svg>' +
+                    '</span>'
+                );
+                
+                // Move search to card-title
+                $('.card-title').html($('.dataTables_filter'));
+            },
+            columnDefs: [
+                {
+                    targets: 0,
+                    render: function(data, type, row) {
+                        if (type === 'filter') {
+                            // Search in name, first name and screen name
+                            const name = $(data).find('.text-gray-800').text().toLowerCase();
+                            const screenName = $(data).find('span:last').text().toLowerCase();
+                            return name + ' ' + screenName;
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: 2,
+                    render: function(data, type, row) {
+                        if (type === 'filter') {
+                            // Search in status text
+                            return $(data).text().toLowerCase();
+                        }
+                        return data;
+                    }
+                },
+                {
+                    targets: -1,
+                    orderable: false,
+                    searchable: false
+                }
+            ]
+        });
+
+        // Status filter
+        $('[data-kt-user-table-filter="status"]').on('change', function() {
+            const value = $(this).val();
+            if (value === 'all') {
+                table.columns(2).search('').draw();
+            } else {
+                table.columns(2).search(value).draw();
+            }
+        });
+
+        // Image preview functionality
+        document.querySelectorAll('[data-kt-image-input]').forEach(function (element) {
+            const imageInput = element.querySelector('input[type="file"]');
+            const imagePreview = element.querySelector('[data-kt-image-preview]');
+
+            if (!imageInput || !imagePreview) return;
+
+            // Store original image
+            if (imagePreview.style.backgroundImage) {
+                imagePreview.setAttribute('data-original-image', imagePreview.style.backgroundImage.replace(/url\((['"])?(.*?)\1\)/gi, '$2'));
+            }
+
+            imageInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validate file type
+                    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Please select a valid image file (JPEG, PNG, GIF, WEBP)');
+                        return;
+                    }
+
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Image size should be less than 5MB');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        imagePreview.style.backgroundImage = `url(${event.target.result})`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Handle remove action
+            const removeBtn = element.querySelector('[data-kt-image-input-action="remove"]');
+            if (removeBtn) {
+                removeBtn.addEventListener('click', function() {
+                    imagePreview.style.backgroundImage = '';
+                    imageInput.value = '';
+                });
+            }
+
+            // Handle cancel action
+            const cancelBtn = element.querySelector('[data-kt-image-input-action="cancel"]');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', function() {
+                    // Reset to original image if exists
+                    const originalImage = imagePreview.getAttribute('data-original-image');
+                    if (originalImage) {
+                        imagePreview.style.backgroundImage = `url(${originalImage})`;
+                    } else {
+                        imagePreview.style.backgroundImage = '';
+                    }
+                    imageInput.value = '';
+                });
+            }
+        });
+
+        // Delete confirmation
+        const deleteModal = new bootstrap.Modal(document.getElementById('kt_modal_confirm_delete'));
+        const deleteForm = document.getElementById('deleteForm');
+        
+        document.querySelectorAll('[data-kt-delete-action]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('data-kt-delete-url');
+                const token = this.getAttribute('data-kt-delete-token');
+                
+                deleteForm.action = url;
+                deleteForm.querySelector('input[name="_token"]').value = token;
+                deleteModal.show();
+            });
+        });
+
+        // Password strength validation for add form
+        $('#kt_modal_add_user_form .password-input').on('input', function() {
+            const password = $(this).val();
+            validatePassword(password, 'add');
+        });
+
+        // Password strength validation for edit forms
+        {% for user in users %}
+            $('#kt_modal_edit_user_form_{{ user.userId }} .password-input').on('input', function() {
+                const password = $(this).val();
+                validatePassword(password, '{{ user.userId }}');
+            });
+        {% endfor %}
+
+        function validatePassword(password, userId) {
+            const result = zxcvbn(password);
+            const strength = result.score;
+            
+            // Update progress bar
+            const progressBar = $(userId === 'add' ? '#password-strength-bar' : '#edit-password-strength-bar-' + userId);
+            const strengthText = $(userId === 'add' ? '#strength-text' : '#edit-strength-text-' + userId);
+            
+            let percentage = (strength + 1) * 25;
+            progressBar.css('width', percentage + '%');
+            
+            // Update color and text based on strength
+            switch(strength) {
+                case 0:
+                case 1:
+                    progressBar.removeClass('bg-warning bg-success bg-primary').addClass('bg-danger');
+                    strengthText.text('Weak').removeClass().addClass('strength-text strength-weak');
+                    break;
+                case 2:
+                    progressBar.removeClass('bg-danger bg-success bg-primary').addClass('bg-warning');
+                    strengthText.text('Medium').removeClass().addClass('strength-text strength-medium');
+                    break;
+                case 3:
+                    progressBar.removeClass('bg-danger bg-warning bg-primary').addClass('bg-success');
+                    strengthText.text('Strong').removeClass().addClass('strength-text strength-strong');
+                    break;
+                case 4:
+                    progressBar.removeClass('bg-danger bg-warning bg-success').addClass('bg-primary');
+                    strengthText.text('Very Strong').removeClass().addClass('strength-text strength-very-strong');
+                    break;
+            }
+            
+            // Validate password requirements
+            validatePasswordRequirements(password, userId);
+        }
+
+        function validatePasswordRequirements(password, userId) {
+            // Check length
+            const hasLength = password.length >= 8;
+            // Check uppercase
+            const hasUppercase = /[A-Z]/.test(password);
+            // Check lowercase
+            const hasLowercase = /[a-z]/.test(password);
+            // Check number
+            const hasNumber = /[0-9]/.test(password);
+            // Check special character
+            const hasSpecial = /[\W_]/.test(password);
+            
+            // Update requirements UI
+            updateRequirement(`${userId === 'add' ? '' : 'edit-'}length-req${userId === 'add' ? '' : '-' + userId}`, hasLength);
+            updateRequirement(`${userId === 'add' ? '' : 'edit-'}uppercase-req${userId === 'add' ? '' : '-' + userId}`, hasUppercase);
+            updateRequirement(`${userId === 'add' ? '' : 'edit-'}lowercase-req${userId === 'add' ? '' : '-' + userId}`, hasLowercase);
+            updateRequirement(`${userId === 'add' ? '' : 'edit-'}number-req${userId === 'add' ? '' : '-' + userId}`, hasNumber);
+            updateRequirement(`${userId === 'add' ? '' : 'edit-'}special-req${userId === 'add' ? '' : '-' + userId}`, hasSpecial);
+            
+            // Show/hide error message
+            const errorElement = $(userId === 'add' ? '#passwordError' : `#edit-passwordError-${userId}`);
+            if (password && (!hasLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial)) {
+                errorElement.show();
+            } else {
+                errorElement.hide();
+            }
+            
+            // Enable/disable submit button based on all requirements
+            if (password) {
+                const isValid = hasLength && hasUppercase && hasLowercase && hasNumber && hasSpecial;
+                $(`#${userId === 'add' ? 'submit-button' : 'edit-submit-button-' + userId}`).prop('disabled', !isValid);
+            } else {
+                // For edit forms, password is optional
+                $(`#${userId === 'add' ? 'submit-button' : 'edit-submit-button-' + userId}`).prop('disabled', false);
+            }
+        }
+
+        function updateRequirement(id, isValid) {
+            const element = $(`#${id}`);
+            element.toggleClass('valid', isValid).toggleClass('invalid', !isValid);
+            const icon = element.find('i');
+            
+            icon.removeClass('bi-circle bi-check-circle bi-x-circle');
+            
+            if (isValid) {
+                icon.addClass('bi-check-circle text-success');
+            } else {
+                icon.addClass('bi-x-circle text-danger');
+            }
+        }
+
+        // Form validation for add user
+        $('#kt_modal_add_user_form').on('submit', function(e) {
+            let isValid = true;
+            
+            // Validate required fields
+            $(this).find('[required]').each(function() {
+                const field = $(this);
+                const errorElement = $('#' + field.attr('id') + 'Error');
+                
+                if (!field.val()) {
+                    field.addClass('is-invalid');
+                    errorElement.text('This field is required');
+                    isValid = false;
+                } else {
+                    field.removeClass('is-invalid');
+                    errorElement.text('');
+                }
+            });
+            
+            // Additional password validation
+            const password = $('.password-input').val();
+            if (password) {
+                const hasLength = password.length >= 8;
+                const hasUppercase = /[A-Z]/.test(password);
+                const hasLowercase = /[a-z]/.test(password);
+                const hasNumber = /[0-9]/.test(password);
+                const hasSpecial = /[\W_]/.test(password);
+                
+                if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+                    $('#passwordError').show();
+                    isValid = false;
+                } else {
+                    $('#passwordError').hide();
+                }
+            }
+            
+            // Phone number validation
+            const phoneNumber = $('#{{ form.phoneNumber.vars.id }}').val();
+            const phoneRegex = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/;
+            if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+                $('#phoneNumberError').text('Please enter a valid phone number');
+                isValid = false;
+            } else {
+                $('#phoneNumberError').text('');
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Form validation for edit forms
+        {% for user in users %}
+            $('#kt_modal_edit_user_form_{{ user.userId }}').on('submit', function(e) {
+                let isValid = true;
+                
+                // Validate required fields
+                $(this).find('[required]').each(function() {
+                    const field = $(this);
+                    const fieldId = field.attr('id');
+                    const errorElement = $('#edit-' + fieldId.replace('edit_forms_' + {{ user.userId }} + '_', '') + 'Error-{{ user.userId }}');
+                    
+                    if (!field.val()) {
+                        field.addClass('is-invalid');
+                        errorElement.text('This field is required');
+                        isValid = false;
+                    } else {
+                        field.removeClass('is-invalid');
+                        errorElement.text('');
+                    }
+                });
+                
+                // Additional password validation if password is being changed
+                const password = $('#edit_forms_{{ user.userId }}_plainPassword').val();
+                if (password) {
+                    const hasLength = password.length >= 8;
+                    const hasUppercase = /[A-Z]/.test(password);
+                    const hasLowercase = /[a-z]/.test(password);
+                    const hasNumber = /[0-9]/.test(password);
+                    const hasSpecial = /[\W_]/.test(password);
+                    
+                    if (!hasLength || !hasUppercase || !hasLowercase || !hasNumber || !hasSpecial) {
+                        $(`#edit-passwordError-{{ user.userId }}`).show();
+                        isValid = false;
+                    } else {
+                        $(`#edit-passwordError-{{ user.userId }}`).hide();
+                    }
+                }
+                
+                // Phone number validation
+                const phoneNumber = $('#edit_forms_{{ user.userId }}_phoneNumber').val();
+                const phoneRegex = /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/;
+                if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+                    $('#edit-phoneNumberError-{{ user.userId }}').text('Please enter a valid phone number');
+                    isValid = false;
+                } else {
+                    $('#edit-phoneNumberError-{{ user.userId }}').text('');
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
         {% endfor %}
     });
 
@@ -291,24 +1025,5 @@
         const bsToast = new bootstrap.Toast(toast);
         bsToast.show();
     }
-
-    // Image preview functionality
-    document.querySelectorAll('[data-kt-image-input]').forEach(function (element) {
-        const imageInput = element.querySelector('input[type="file"]');
-        const imagePreview = element.querySelector('[data-kt-image-preview]');
-
-        if (!imageInput || !imagePreview) return;
-
-        imageInput.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    imagePreview.style.backgroundImage = `url(${event.target.result})`;
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    });
 </script>
 {% endblock %}

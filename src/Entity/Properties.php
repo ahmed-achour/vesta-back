@@ -175,10 +175,13 @@ class Properties
     private ?File $mainPictureFile = null;
 
     #[ORM\Column(type: "json", nullable: true, name: "gallery_pictures")]
-    private array $galleryPictures = []; // Initialize as empty array
+    private array $galleryPictures = [];
 
-    #[Vich\UploadableField(mapping: "property_gallery", fileNameProperty: "galleryPictures")]
-    private ?File $galleryPicturesFile = null;
+    // Remove the VichUploadableField for galleryPicturesFile
+    private ?array $galleryPicturesFiles = null; // This can be removed entirely
+
+    // Keep these methods:
+
 
     /**
      * @var string|null
@@ -447,6 +450,8 @@ class Properties
         return $this->mainPictureFile;
     }
 
+
+
     public function getGalleryPictures(): array
     {
         return $this->galleryPictures ?: [];
@@ -458,15 +463,7 @@ class Properties
         return $this;
     }
 
-    public function getGalleryPicturesFile(): ?File
-    {
-        return $this->galleryPicturesFile;
-    }
 
-    public function setGalleryPicturesFile(?File $galleryPicturesFile = null): void
-    {
-        $this->galleryPicturesFile = $galleryPicturesFile;
-    }
 
     public function getPlanPicture(): ?string
     {
@@ -487,5 +484,9 @@ class Properties
     public function getPlanPictureFile(): ?File
     {
         return $this->planPictureFile;
+    }
+    public function getGalleryPicturesFile(): ?File
+    {
+        return null; // Vich expects this to be nullable
     }
 }

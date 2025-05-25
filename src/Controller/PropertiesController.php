@@ -47,38 +47,68 @@ class PropertiesController extends DefaultLayoutController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // Handle gallery pictures upload
+            // Handle main picture upload
+            $mainPictureFile = $form->get('mainPictureFile')->getData();
+            if ($mainPictureFile instanceof UploadedFile) {
+                $fileName = md5(uniqid()) . '.' . $mainPictureFile->guessExtension();
+                $mainPictureFile->move(
+                    $this->getParameter('property_main_directory'),
+                    $fileName
+                );
+                $property->setMainPicture($fileName);
+            }
+            dump($property);
             $galleryFiles = $form->get('galleryPicturesFile')->getData();
             $galleryPictures = [];
 
-            if ($galleryFiles) {
+            if (is_array($galleryFiles)) {
                 foreach ($galleryFiles as $file) {
-                    if ($file instanceof UploadedFile) {
-                        $fileName = md5(uniqid()) . '.' . $file->guessExtension();
-                        $file->move(
-                            $this->getParameter('property_gallery_directory'),
-                            $fileName
-                        );
-                        $galleryPictures[] = $fileName;
+                    if ($file instanceof UploadedFile && $file->isValid()) {
+                        try {
+                            $fileName = md5(uniqid()) . '.' . $file->guessExtension();
+                            $file->move(
+                                $this->getParameter('property_gallery_directory'),
+                                $fileName
+                            );
+                            $galleryPictures[] = $fileName;
+                        } catch (\Exception $e) {
+                            // Optionally log or handle the failed file upload
+                            $this->addFlash('error', 'One of the gallery images could not be uploaded: ' . $e->getMessage());
+                        }
                     }
                 }
-                $property->setGalleryPictures($galleryPictures);
             }
+
+            $property->setGalleryPictures($galleryPictures);
+
+            // Handle plan picture upload
+            $planPictureFile = $form->get('planPictureFile')->getData();
+            if ($planPictureFile instanceof UploadedFile) {
+                $fileName = md5(uniqid()) . '.' . $planPictureFile->guessExtension();
+                $planPictureFile->move(
+                    $this->getParameter('property_plan_directory'),
+                    $fileName
+                );
+                $property->setPlanPicture($fileName);
+            }
+
             // Calculate price per sqft if not provided
             if (!$property->getPricePerSqft() && $property->getListingPrice() && $property->getLivableArea()) {
                 $pricePerSqft = $property->getListingPrice() / $property->getLivableArea();
                 $property->setPricePerSqft(number_format($pricePerSqft, 2));
             }
 
+
             $entityManager->persist($property);
             $entityManager->flush();
+
 
             $this->addFlash('success', 'Property created successfully');
             return $this->redirectToRoute('admin_properties_index');
         }
 
         $this->theme->addVendors(['amcharts', 'amcharts-maps', 'amcharts-stock']);
-        return $this->render('pages/admin/properties/index.html.twig', [
+        return $this->render('pages/properties/index.html.twig', [
             'properties' => $propertiesRepository->findAll(),
             'form' => $form->createView(),
             'edit_forms' => $this->createEditForms($propertiesRepository),
@@ -134,16 +164,31 @@ class PropertiesController extends DefaultLayoutController
     }
 
     #[Route('/{id}', name: 'admin_properties_delete', methods: ['POST'])]
-    public function delete(Request $request, Properties $property, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $property->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($property);
-            $this->addFlash('success', 'Property deleted successfully');
-            $entityManager->flush();
+    public function delete(
+        Request $request,
+        Properties $property,  // This uses ParamConverter
+        EntityManagerInterface $entityManager
+    ): Response {
+        // If property is not found, Symfony will automatically throw 404
+
+        $token = $request->request->get('_token');
+
+        if (!$this->isCsrfTokenValid('delete' . $property->getId(), $token)) {
+            $this->addFlash('error', 'Invalid CSRF token.');
+            return $this->redirectToRoute('admin_properties_index');
         }
 
-        return $this->redirectToRoute('admin_properties_index', [], Response::HTTP_SEE_OTHER);
+        try {
+            $entityManager->remove($property);
+            $entityManager->flush();
+            $this->addFlash('success', 'Property deleted successfully');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to delete property: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('admin_properties_index');
     }
+
 
     private function createEditForms(PropertiesRepository $propertiesRepository): array
     {
