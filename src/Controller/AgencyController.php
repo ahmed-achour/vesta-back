@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Controller\Bootstrap\DefaultLayoutController;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 #[Route('/admin/agencies')]
 class AgencyController extends DefaultLayoutController
@@ -104,5 +107,69 @@ class AgencyController extends DefaultLayoutController
             $editForms[$agency->getAgencyId()] = $this->createForm(AgencyType::class, $agency, ['is_edit' => true])->createView();
         }
         return $editForms;
+    }
+    
+    #[Route('/signin', name: 'agency_signin')]
+    public function signin(AuthenticationUtils $authenticationUtils): Response
+    {
+        // if user is already logged in, redirect to dashboard
+        if ($this->getUser()) {
+            return $this->redirectToRoute('admin_agencies_index');
+        }
+
+        // get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+        // last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        return $this->render('signin.html.twig', [
+            'last_username' => $lastUsername,
+            'error' => $error
+        ]);
+    }
+
+    #[Route('/signup', name: 'agency_signup')]
+    public function signup(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    {
+        // if user is already logged in, redirect to dashboard
+        if ($this->getUser()) {
+            return $this->redirectToRoute('admin_agencies_index');
+        }
+
+        $agency = new Agency();
+        
+        if ($request->isMethod('POST')) {
+            $email = $request->request->get('email');
+            $plainPassword = $request->request->get('password');
+            $confirmPassword = $request->request->get('confirm-password');
+            
+            // Basic validation
+            if ($plainPassword !== $confirmPassword) {
+                $this->addFlash('error', 'Passwords do not match');
+                return $this->redirectToRoute('agency_signup');
+            }
+            
+            // Hash the password
+            $hashedPassword = $passwordHasher->hashPassword($agency, $plainPassword);
+            
+            $agency->setEmail($email);
+            $agency->setPassword($hashedPassword);
+            $agency->setCreatedAt(new \DateTime());
+            
+            $entityManager->persist($agency);
+            $entityManager->flush();
+            
+            $this->addFlash('success', 'Registration successful! Please sign in.');
+            return $this->redirectToRoute('agency_signin');
+        }
+
+        return $this->render('signup.html.twig');
+    }
+
+    #[Route('/logout', name: 'agency_logout')]
+    public function logout(): void
+    {
+        // controller can be blank: it will be intercepted by the logout key on your firewall
+        throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
     }
 }

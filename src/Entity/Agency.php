@@ -4,6 +4,10 @@ namespace App\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 
 /**
  * Agency
@@ -12,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
 *@ORM\Entity(repositoryClass="App\Repository\AgencyRepository")
  */
-class Agency
+class Agency implements UserInterface, PasswordAuthenticatedUserInterface
 {
     /**
      * @var int
@@ -106,6 +110,17 @@ class Agency
      * @ORM\Column(name="created_at", type="datetime", nullable=true, options={"default"="CURRENT_TIMESTAMP"})
      */
     private $createdAt = 'CURRENT_TIMESTAMP';
+
+      /**
+     * @ORM\Column(type="string", length=180, unique=true, nullable=true)
+     */
+    private $email; // Add this if not already present
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $password; // Add this if agencies should authenticate
+
 
     public function getAgencyId(): ?string
     {
@@ -255,6 +270,93 @@ class Agency
 
         return $this;
     }
+    /**
+ * Get the email address
+ * 
+ * @return string|null
+ */
+public function getEmail(): ?string
+{
+    return $this->email;
+}
+
+/**
+ * Set the email address
+ * 
+ * @param string|null $email
+ * @return self
+ */
+public function setEmail(?string $email): self
+{
+    $this->email = $email;
+    return $this;
+}
+
+/**
+ * Get the hashed password
+ * 
+ * @return string|null
+ */
+public function getPassword(): ?string
+{
+    return $this->password;
+}
+
+/**
+ * Set the hashed password
+ * 
+ * @param string|null $password
+ * @return self
+ */
+public function setPassword(?string $password): self
+{
+    $this->password = $password;
+    return $this;
+}
+
+    public function eraseCredentials()
+    {
+        // If you store any temporary sensitive data, clear it here
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email; // Or other unique field
+    }
+
+    public function getSalt(): ?string
+    {
+        return null; // Not needed with modern hashing
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_AGENCY']; // Always returns this exact role
+    }
+    public function hasMember(Agents $agent): bool
+{
+    foreach ($this->getMembers() as $membership) {
+        if ($membership->getAgent()->getAgentId() === $agent->getAgentId()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @return Collection|AgencyMembers[]
+ */
+public function getMembers(): Collection
+{
+    return $this->members;
+}
+
+// Add this inverse side if using bidirectional relationship
+/**
+ * @ORM\OneToMany(targetEntity="AgencyMembers", mappedBy="agency")
+ */
+private $members;
+
 
 
 }
